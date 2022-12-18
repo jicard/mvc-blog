@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const handlebars = require('handlebars');
 const session = require('express-session');
 const mysql = require('mysql2');
@@ -8,6 +9,19 @@ const { Sequelize } = require('sequelize');
 const sequelize = require('./config/connection');
 const { appendFile } = require('fs');
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
+
+const app = express();
+const port = process.env.PORT || 3001
+
+app.get('/', (req, res) => {
+    res.send('Tech blog');
+});
+
+sequelize.sync({ force: false }).then(() => {
+    app.listen(port, () => {
+      console.log("App listening on PORT " + port);
+    });
+  });
 
 app.use(
     session({
@@ -33,10 +47,6 @@ app.set("view engine", "handlebars");
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(require("./routes.js"));
+app.use(require("./controllers"));
 
-sequelize.sync({ force: false }).then(() => {
-  app.listen(PORT, () => {
-    console.log("App listening on PORT " + PORT);
-  });
-});
+
