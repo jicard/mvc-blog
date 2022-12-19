@@ -1,4 +1,4 @@
-const sequelize = require("/Users/joshicard/Documents/Bootcamp/mvc-blog/config/connection");
+const sequelize = require("../../config/connection");
 const commentSeed = require("./comment-seeds");
 const postSeed = require("./posts-seeds");
 const userSeed = require("./user-seeds");
@@ -10,7 +10,6 @@ const seedAll = async () => {
   process.exit(0);
 };
 
-/*
 const excAuth = (req, res, next) => {
   if (!req.session.user_id) {
     res.redirect("/login");
@@ -20,5 +19,4 @@ const excAuth = (req, res, next) => {
 };
 
 module.exports = excAuth;
-*/
 seedAll();

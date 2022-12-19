@@ -13,21 +13,15 @@ Post.init({
     title: {
         type: DataTypes.STRING,
         allowNull: false,
-        validate: {
-            len: [1]
-        }
     },
     content: {
         type: DataTypes.STRING,
-        allowNull: false,
-        validate: {
-            len: [1]
-        }
+        allowNull: true,
     },
     user_id: {
         type: DataTypes.INTEGER,
         references: {
-            model: 'user',
+            model: 'User',
             key: 'id'
         }
     }
@@ -37,6 +31,5 @@ Post.init({
     underscored: true,
     modelName: 'post'
 })
-
 
 module.exports = Post;

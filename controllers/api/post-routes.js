@@ -1,52 +1,137 @@
-const router = require("express").Router();
-const sequelize = require("../../config/connection");
-const excAuth = require("../../utils/auth");
+const router = require('express').Router();
+const {
+    User,
+    Post,
+    Comment
+} = require('../../models');
+const withAuth = require('../../utils/auth');
 
-const { Post, User, Comment } = require("../../models");
 
-// Create a Post route
-router.post("/", excAuth, (req, res) => {
-  console.log(req.body);
-  Post.create({ ...req.body, userId: req.session.user_id })
-    .then((data) => res.json(data))
-    .catch((err) => {
-      console.log(err);
-      res.status(500).json(err);
-    });
+// Get all posts
+router.get("/", (req, res) => {
+    Post.findAll({
+            attributes: ["id", "content", "title", "created_at"],
+            order: [
+                ["created_at", "DESC"]
+            ],
+            include: [{
+                    model: User,
+                    attributes: ["username"],
+                },
+                {
+                    model: Comment,
+                    attributes: ["id", "comment_text", "post_id", "user_id", "created_at"],
+                    include: {
+                        model: User,
+                        attributes: ["username"],
+                    },
+                },
+            ],
+        })
+        .then((dbPostData) => res.json(dbPostData))
+        .catch((err) => {
+            console.log(err);
+            res.status(500).json(err);
+        });
 });
 
-// Update Post route by id
-router.put("/:id", (req, res) => {
-  Post.update(req.body, {
-    where: {
-      id: req.params.id,
-    },
-  })
-    .then((data) => {
-      if (!data) {
-        res.status(404).json({ message: "No post was found matching this id" });
-        return;
-      }
-      res.json(data);
-    })
-    .catch((err) => {
-      res.json(err);
-    });
+// Get a single post
+router.get("/:id", (req, res) => {
+    Post.findOne({
+            where: {
+                id: req.params.id,
+            },
+            attributes: ["id", "content", "title", "created_at"],
+            include: [{
+                    model: User,
+                    attributes: ["username"],
+                },
+                {
+                    model: Comment,
+                    attributes: ["id", "comment_text", "post_id", "user_id", "created_at"],
+                    include: {
+                        model: User,
+                        attributes: ["username"],
+                    },
+                },
+            ],
+        })
+        .then((dbPostData) => {
+            if (!dbPostData) {
+                res.status(404).json({
+                    message: "No post found with this id"
+                });
+                return;
+            }
+            res.json(dbPostData);
+        })
+        .catch((err) => {
+            console.log(err);
+            res.status(500).json(err);
+        });
 });
 
-// delete Post route by post id
-router.delete("/:id", (req, res) => {
-  Post.destroy({
-    where: {
-      id: req.params.id,
-    },
-  })
-    .then((data) => {
-      res.json(data);
-    })
-    .catch((err) => {
-      res.json(err);
-    });
+// Create a post
+router.post("/", withAuth, (req, res) => {
+    console.log("creating");
+    Post.create({
+            title: req.body.title,
+            content: req.body.post_content,
+            user_id: req.session.user_id
+        })
+        .then((dbPostData) => res.json(dbPostData))
+        .catch((err) => {
+            console.log(err);
+            res.status(500).json(err);
+        });
 });
+
+// Update a post
+router.put("/:id", withAuth, (req, res) => {
+    Post.update({
+            title: req.body.title,
+            content: req.body.post_content,
+        }, {
+            where: {
+                id: req.params.id,
+            },
+        })
+        .then((dbPostData) => {
+            if (!dbPostData) {
+                res.status(404).json({
+                    message: "No post found with this id"
+                });
+                return;
+            }
+            res.json(dbPostData);
+        })
+        .catch((err) => {
+            console.log(err);
+            res.status(500).json(err);
+        });
+});
+
+//Delete a post
+router.delete("/:id", withAuth, (req, res) => {
+    Post.destroy({
+            where: {
+                id: req.params.id,
+            },
+        })
+        .then((dbPostData) => {
+            if (!dbPostData) {
+                res.status(404).json({
+                    message: "No post found with this id"
+                });
+                return;
+            }
+            res.json(dbPostData);
+        })
+        .catch((err) => {
+            console.log(err);
+            res.status(500).json(err);
+        });
+});
+
 
 module.exports = router;
